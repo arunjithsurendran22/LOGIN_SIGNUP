@@ -20,24 +20,33 @@ const JWT_SECRET = "vjksjdsjhdsjhdsajhdbsajhdgsahjdbsajhdbsa";
 const MONGODB_URL = "mongodb://127.0.0.1:27017/storeme";
 
 // Establish a connection with your MongoDB database
-mongoose.connect(MONGODB_URL, {
+mongoose
+  .connect(MONGODB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  }).then(() => {
+  })
+  .then(() => {
     console.log("Connected to MongoDB");
-  }).catch((error) => {
+  })
+  .catch((error) => {
     console.error("MongoDB connection error:", error);
   });
-  
 
 // Define a schema for user authentication
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
 });
 
 const User = mongoose.model("users", userSchema);
-
+// --------------------------------------------------------
 app.post("/signup", async (req, res) => {
   // Get user data from the request
   const { email, password: plainTextPassword } = req.body;
@@ -51,7 +60,7 @@ app.post("/signup", async (req, res) => {
       email,
       password,
     });
-
+    console.log(response);
     return res.redirect("/");
   } catch (error) {
     console.log(JSON.stringify(error));
@@ -61,6 +70,7 @@ app.post("/signup", async (req, res) => {
     throw error;
   }
 });
+// --------------------------------------------------------------
 
 // Function to verify user login
 const verifyUserLogin = async (email, password) => {
@@ -74,17 +84,32 @@ const verifyUserLogin = async (email, password) => {
     if (await bcrypt.compare(password, user.password)) {
       // Create a JWT token
       const token = jwt.sign(
-        { id: user._id, username: user.email, type: "user" },
+        {
+          id: user._id,
+          username: user.email,
+          type: "user",
+        },
         JWT_SECRET,
-        { expiresIn: "2h" }
+        {
+          expiresIn: "2h",
+        }
       );
-      return { status: "ok", data: token };
+      return {
+        status: "ok",
+        data: token,
+      };
     }
 
-    return { status: "error", error: "invalid password" };
+    return {
+      status: "error",
+      error: "invalid password",
+    };
   } catch (error) {
     console.log(error);
-    return { status: "error", error: "timed out" };
+    return {
+      status: "error",
+      error: "timed out",
+    };
   }
 };
 
@@ -127,6 +152,7 @@ app.get("/", (req, res) => {
     res.redirect("/login");
   }
 });
+
 app.get("/logout", (req, res) => {
   // Clear the JWT token cookie by setting its expiration to a past date
   res.cookie("token", "", { expires: new Date(0), httpOnly: true });
